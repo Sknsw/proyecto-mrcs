@@ -1,0 +1,134 @@
+/* Estilos generales */
+body {
+    font-family: "Arial", sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+/* Contenedor principal */
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Título */
+h1 {
+    color: #003366;
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* Botón */
+.btn {
+    background-color: #003366;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    border-radius: 5px;
+}
+
+.btn:hover {
+    background-color: #0055a5;
+}
+
+/* Contenedor de la tabla */
+.table-container {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+/* Tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Encabezados */
+th {
+    background-color: #003366;
+    color: white;
+    padding: 10px;
+}
+
+/* Celdas */
+td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Filas alternas */
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Efecto hover en filas */
+tr:hover {
+    background-color: #e6f2ff;
+}
+
+/* Estados de pago */
+.paid {
+    color: green;
+    font-weight: bold;
+}
+
+.pending {
+    color: orange;
+    font-weight: bold;
+}
+
+.failed {
+    color: red;
+    font-weight: bold;
+}
+
+/* Formulario de subida de archivos */
+#upload-form {
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+#csvFile {
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 5px;
+}
+/* Campo de búsqueda */
+#search {
+    width: 50%;
+    padding: 8px;
+    margin: 10px auto;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Campo de búsqueda */
+#search {
+    width: 50%;
+    padding: 8px;
+    margin: 10px auto;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Estadísticas */
+#stats {
+    margin-top: 20px;
+    font-size: 18px;
+}
+
