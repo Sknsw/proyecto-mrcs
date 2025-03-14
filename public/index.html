@@ -7,21 +7,23 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h2>Nuevo Pago</h2>
-<form id="pagoForm">
-    <label>Empresa que paga:</label>
-    <input type="text" id="empresa" required><br><br>
 
-    <label>Trabajador que recibe:</label>
-    <input type="text" id="trabajador" required><br><br>
+    <h2>💳 Nuevo Pago</h2>
+    <form id="pagoForm">
+        <label>Empresa que paga:</label>
+        <input type="text" id="empresa" required><br><br>
 
-    <label>Monto (€):</label>
-    <input type="number" id="monto" required><br><br>
+        <label>Trabajador que recibe:</label>
+        <input type="text" id="trabajador" required><br><br>
 
-    <button type="submit">Enviar Pago</button>
-</form>
+        <label>Monto (€):</label>
+        <input type="number" id="monto" required><br><br>
 
-<h3>Estado del Pago: <span id="estadoPago">-</span></h3>
+        <button type="submit">Enviar Pago</button>
+    </form>
+
+    <h3>Estado del Pago: <span id="estadoPago">-</span></h3>
+
     <div class="container">
         <h1>💳 Panel de Pagos SEPA</h1>
         <button class="btn" onclick="cargarPagos()">Cargar Pagos</button>
@@ -43,7 +45,9 @@
                 </tbody>
             </table>
         </div>
-    </div><div id="stats">
+    </div>
+
+    <div id="stats">
         <p><strong>Total Pagado:</strong> <span id="totalPagado">0</span> €</p>
         <p><strong>Pendientes:</strong> <span id="totalPendiente">0</span> €</p>
         <p><strong>Fallidos:</strong> <span id="totalFallido">0</span> €</p>
@@ -53,9 +57,128 @@
         <input type="file" id="csvFile" accept=".csv">
         <button type="submit" class="btn">Subir CSV</button>
     </form>
+
     <input type="text" id="search" placeholder="Buscar cliente o estado..." onkeyup="buscarPagos()">
 
-    
-    <script src="script.js"></script>
+    <script>
+        let pagos = [];  // Se inicializa la variable global
+
+        async function cargarPagos() {
+            try {
+                const response = await fetch("https://proyecto-mrcs.onrender.com/api/pagos");
+                pagos = await response.json();
+
+                const tabla = document.getElementById("tabla-pagos");
+                tabla.innerHTML = ""; 
+
+                pagos.forEach(pago => {
+                    const fila = document.createElement("tr");
+                    fila.innerHTML = `
+                        <td>${pago.id}</td>
+                        <td>${pago.cliente}</td>
+                        <td>${pago.monto} €</td>
+                        <td>${pago.estado}</td>
+                    `;
+                    tabla.appendChild(fila);
+                });
+
+                actualizarEstadisticas();
+            } catch (error) {
+                console.error("Error al cargar pagos:", error);
+                document.getElementById("tabla-pagos").innerHTML = "<tr><td colspan='4'>⚠️ Error al cargar los pagos.</td></tr>";
+            }
+        }
+
+        function actualizarEstadisticas() {
+            let totalPagado = 0, totalPendiente = 0, totalFallido = 0;
+
+            pagos.forEach(pago => {
+                if (pago.estado === "Pagado") totalPagado += pago.monto;
+                if (pago.estado === "Pendiente") totalPendiente += pago.monto;
+                if (pago.estado === "Fallido") totalFallido += pago.monto;
+            });
+
+            document.getElementById("totalPagado").innerText = totalPagado.toFixed(2);
+            document.getElementById("totalPendiente").innerText = totalPendiente.toFixed(2);
+            document.getElementById("totalFallido").innerText = totalFallido.toFixed(2);
+        }
+
+        function buscarPagos() {
+            const filtro = document.getElementById("search").value.toLowerCase();
+            const filas = document.querySelectorAll("tbody tr");
+
+            filas.forEach(fila => {
+                const textoFila = fila.innerText.toLowerCase();
+                fila.style.display = textoFila.includes(filtro) ? "" : "none";
+            });
+        }
+
+        document.getElementById("pagoForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const empresa = document.getElementById("empresa").value;
+            const trabajador = document.getElementById("trabajador").value;
+            const monto = document.getElementById("monto").value;
+
+            const response = await fetch("https://proyecto-mrcs.onrender.com/create-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    amount: parseFloat(monto),
+                    currency: "eur",
+                    workerAccountId: trabajador, // Se debe enviar el ID de la cuenta Stripe real
+                    feePercentage: 10, // Comisión del 10%
+                }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById("estadoPago").innerText = "✅ Pago enviado con éxito.";
+                cargarPagos(); // Refresca la tabla tras el pago
+            } else {
+                document.getElementById("estadoPago").innerText = "❌ Error en el pago: " + data.error;
+            }
+        });
+
+        document.getElementById("upload-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById("csvFile");
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Por favor, selecciona un archivo CSV.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                procesarCSV(content);
+            };
+            reader.readAsText(file);
+        });
+
+        function procesarCSV(csvData) {
+            const rows = csvData.split("\n").slice(1); // Omitimos la cabecera
+            const nuevosPagos = [];
+
+            rows.forEach(row => {
+                const cols = row.split(",");
+                if (cols.length === 3) {
+                    nuevosPagos.push({
+                        id: "PAG" + Math.floor(Math.random() * 1000),
+                        cliente: cols[0].trim(),
+                        monto: parseFloat(cols[1].trim()),
+                        estado: cols[2].trim()
+                    });
+                }
+            });
+
+            pagos.push(...nuevosPagos);
+            cargarPagos();
+        }
+    </script>
+
 </body>
 </html>
+
